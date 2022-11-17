@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
 #include <iostream>
+#include <corecrt_math_defines.h>
 #include "main.h"
 
 ShapeType shapeType = ShapeType::Tetragon;
@@ -44,16 +45,22 @@ int main()
 			{
 				if (event.key.code == sf::Keyboard::Right)
 				{
-					shapeType = ShapeType((int)shapeType + 1);
+					int t = (int)shapeType + 1;
+					if (t == SHAPE_TYPES)
+						t = 0;
+					shapeType = ShapeType(t);
 				}
 				else if (event.key.code == sf::Keyboard::Left)
 				{
-					shapeType = ShapeType((int)shapeType - 1);
+					int t = (int)shapeType - 1;
+					if (t < 0)
+						t = SHAPE_TYPES - 1;
+					shapeType = ShapeType(t);
 				}
 			}
 		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Очищаем буфер цвета и буфер глубины
-		Draw(); // Рисуем
+		Draw(window); // Рисуем
 		window.display(); // Выводим на экран
 	}
 EXIT_IS_RIGHT_HERE: // Метка выхода
@@ -64,15 +71,26 @@ EXIT_IS_RIGHT_HERE: // Метка выхода
 void InitVBO()
 {
 	glGenBuffers(1, &VBO); // Генерируем буфер
+	PentagonFunc f;
 	Vertex data[] = {
 		// Tetragon
-		{ -1.0, 1.0 }, // 0
-		{ 1.0, 1.0 }, // 1
-		{ 1.0, -1.0 }, // 2
-		{ -1.0, -1.0 }, // 3
+		{ -1.0 / 2, 1.0 / 2, red}, // 0
+		{ 1.0 / 2, 1.0 / 2, green}, // 1
+		{ 1.0 / 2, -1.0 / 2, blue}, // 2
+		{ -1.0 / 2, -1.0 / 2, yellow}, // 3
 		// TriangleStrip
-		// TODO: other shapes
-		
+		{ 0.0f / 2, -1.0f / 2, red }, // 0
+		{ -1.0f / 2, 0.0f / 2, green }, // 1
+		{ -0.77f / 2, 0.77f / 2, blue }, // 2
+		{ 0.0f / 2, 1.0f / 2, yellow }, // 3
+		{ 0.77f / 2, 0.77f / 2, red }, // 4
+		{ 1.0f / 2, 0.0f / 2, green }, // 5
+		// Pentagon
+		{ cosf(f(1)) / 2, sinf(f(1)) / 2, red }, // 0
+		{ cosf(f(2)) / 2, sinf(f(2)) / 2, green }, // 1
+		{ cosf(f(3)) / 2, sinf(f(3)) / 2, blue }, // 2
+		{ cosf(f(4)) / 2, sinf(f(4)) / 2, yellow }, // 3
+		{ cosf(f(5)) / 2, sinf(f(5)) / 2, green }, // 4
 	};
 	glBindBuffer(GL_ARRAY_BUFFER, VBO); // Привязываем буфер
 	// Загружаем данные в буфер
@@ -124,24 +142,41 @@ void InitShader()
 		std::cout << "could not bind attrib" << attr_name << std::endl;
 		return;
 	}
+
+	const char* attr_name2 = "color";
+	Attrib_color = glGetAttribLocation(Program, attr_name2);
+	if (Attrib_color == -1)
+	{
+		std::cout << "could not bind attrib" << attr_name2 << std::endl;
+		return;
+	}
+
 	checkOpenGLerror();
 }
 
-void Draw()
+void Draw(sf::Window& window)
 {
 	glUseProgram(Program); // Устанавливаем шейдерную программу
 	glEnableVertexAttribArray(Attrib_vertex); // Включаем атрибут
+	glEnableVertexAttribArray(Attrib_color);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO); // Привязываем буфер
-	glVertexAttribPointer(Attrib_vertex, 2, GL_FLOAT, GL_FALSE, 0, 0); 	// Указываем данные атрибута
+	glVertexAttribPointer(Attrib_vertex, 2, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), (GLvoid*)0); 	// Указываем данные атрибута
+	glVertexAttribPointer(Attrib_color, 4, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), (GLvoid*)(2*sizeof(GLfloat)));
 	glBindBuffer(GL_ARRAY_BUFFER, 0); // Отвязываем буфер
+	glUniform4f(glGetUniformLocation(Program, "ucol"), (GLfloat)1.0, (GLfloat)0.0, (GLfloat)0.0, (GLfloat)1.0);
 	switch (shapeType)
 	{
 	case ShapeType::Tetragon:
+		window.setTitle("Tetragon");
 		glDrawArrays(GL_QUADS, 0, 4); // Рисуем
 		break;
 	case ShapeType::TriangleStrip:
+		window.setTitle("Triangle Strip");
+		glDrawArrays(GL_TRIANGLE_FAN, 4, 6);
 		break;
 	case ShapeType::Pentagon:
+		window.setTitle("Pentagon");
+		glDrawArrays(GL_POLYGON, 10, 5);
 		break;
 	default:
 		break;
@@ -191,12 +226,6 @@ void checkOpenGLerror()
 		errString = gluErrorString(errCode);
 		std::cout << "OpenGL error: " << errString << std::endl;
 	}
-}
-
-// Вычислить x по заданному y с помощью уравнения прямой
-inline int leq_x(int x1, int y1, int x2, int y2, int y)
-{
-	return (y - y1) * (x2 - x1) / (y2 - y1) + x1;
 }
 
 void SetIcon(sf::Window& wnd)

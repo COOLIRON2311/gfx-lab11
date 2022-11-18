@@ -83,14 +83,14 @@ void InitVBO()
 		{ -1.0f / 2, 0.0f / 2, green }, // 1
 		{ -0.77f / 2, 0.77f / 2, blue }, // 2
 		{ 0.0f / 2, 1.0f / 2, yellow }, // 3
-		{ 0.77f / 2, 0.77f / 2, red }, // 4
-		{ 1.0f / 2, 0.0f / 2, green }, // 5
+		{ 0.77f / 2, 0.77f / 2, orange }, // 4
+		{ 1.0f / 2, 0.0f / 2, violet }, // 5
 		// Pentagon
 		{ cosf(f(1)) / 2, sinf(f(1)) / 2, red }, // 0
 		{ cosf(f(2)) / 2, sinf(f(2)) / 2, green }, // 1
 		{ cosf(f(3)) / 2, sinf(f(3)) / 2, blue }, // 2
 		{ cosf(f(4)) / 2, sinf(f(4)) / 2, yellow }, // 3
-		{ cosf(f(5)) / 2, sinf(f(5)) / 2, green }, // 4
+		{ cosf(f(5)) / 2, sinf(f(5)) / 2, orange }, // 4
 	};
 	glBindBuffer(GL_ARRAY_BUFFER, VBO); // Привязываем буфер
 	// Загружаем данные в буфер

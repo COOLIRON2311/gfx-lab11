@@ -74,6 +74,8 @@ enum class ShapeType
 #define green  0.0, 1.0, 0.0, 1.0
 #define blue   0.0, 0.0, 1.0, 1.0
 #define yellow 1.0, 1.0, 0.3, 1.0
+#define orange 1.0, 0.5, 0.0, 1.0
+#define violet 0.5, 0.0, 1.0, 1.0
 
 struct PentagonFunc
 {
